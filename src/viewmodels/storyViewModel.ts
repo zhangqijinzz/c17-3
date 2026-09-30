@@ -2,12 +2,25 @@ import {
   characterColors,
   createId,
   createStarterStory,
+  type RelationPolarity,
   type StoryCharacter,
   type StoryClue,
   type StoryDocument,
+  type StoryRelation,
   type StoryScene,
 } from '../models/story';
-import { getStats, getTimelineWarning, orderedScenes, validateName } from '../models/storyRules';
+import {
+  characterHasScene,
+  characterName,
+  getStats,
+  getTimelineWarning,
+  orderedScenes,
+  orphanRelations,
+  relationsInScene,
+  relationsOfCharacter,
+  removeCharacterReferences,
+  validateName,
+} from '../models/storyRules';
 import type { StoryRepository } from '../repositories/storyRepository';
 
 export type ViewModelStatus = 'loading' | 'ready' | 'editing' | 'error' | 'completed';
@@ -85,6 +98,36 @@ export class StoryViewModel {
     this.setState({ notice: `已加入人物「${character.name}」` });
   }
 
+  /** 改名只动名字，关系按人物 id 关联，不会因此悬空 */
+  renameCharacter(characterId: string, name: string): void {
+    const cleanName = validateName(name);
+    if (cleanName === '至少输入 2 个字') {
+      this.setState({ notice: cleanName });
+      return;
+    }
+    this.updateStory((story) => ({
+      ...story,
+      characters: story.characters.map((character) =>
+        character.id === characterId ? { ...character, name: cleanName } : character,
+      ),
+    }));
+    this.setState({ notice: '人物已改名，相关关系保持不变' });
+  }
+
+  /** 删除人物会连带清除其出场记录与全部关系，并回报清理结果 */
+  deleteCharacter(characterId: string): void {
+    const story = this.requireStory();
+    const target = story.characters.find((character) => character.id === characterId);
+    if (!target) return;
+    const relationCount = relationsOfCharacter(story, characterId).length;
+    const sceneCount = story.scenes.filter((scene) => scene.characterIds.includes(characterId)).length;
+    this.updateStory((current) => removeCharacterReferences(current, characterId));
+    const parts = [`已删除人物「${target.name}」`];
+    if (relationCount > 0) parts.push(`清理 ${relationCount} 条关联关系`);
+    if (sceneCount > 0) parts.push(`从 ${sceneCount} 个场景移除`);
+    this.setState({ notice: parts.join('，') });
+  }
+
   addScene(title: string, summary: string): void {
     const cleanTitle = validateName(title);
     if (cleanTitle === '至少输入 2 个字') {
@@ -113,14 +156,87 @@ export class StoryViewModel {
   }
 
   toggleCharacter(sceneId: string, characterId: string): void {
+    const before = this.requireStory();
+    const scene = before.scenes.find((item) => item.id === sceneId);
+    const isRemoving = scene?.characterIds.includes(characterId) ?? false;
+    // 移除后该人物是否不再出现在任何场景：在出场前先判断，提示其关系将如何处理
+    const lastScene =
+      isRemoving &&
+      characterHasScene(before, characterId) &&
+      before.scenes.filter((item) => item.characterIds.includes(characterId)).length === 1;
     this.updateStory((story) => ({
       ...story,
-      scenes: story.scenes.map((scene) => {
-        if (scene.id !== sceneId) return scene;
-        const hasCharacter = scene.characterIds.includes(characterId);
-        return { ...scene, characterIds: hasCharacter ? scene.characterIds.filter((id) => id !== characterId) : [...scene.characterIds, characterId] };
+      scenes: story.scenes.map((item) => {
+        if (item.id !== sceneId) return item;
+        const hasCharacter = item.characterIds.includes(characterId);
+        return { ...item, characterIds: hasCharacter ? item.characterIds.filter((id) => id !== characterId) : [...item.characterIds, characterId] };
       }),
     }));
+    if (lastScene) {
+      const relationCount = relationsOfCharacter(before, characterId).length;
+      const name = characterName(before, characterId);
+      this.setState({
+        notice:
+          relationCount > 0
+            ? `「${name}」已不在任何场景中，仍保留 ${relationCount} 条关系；若不再使用，请在人物卡删除以清理关系`
+            : `「${name}」已不在任何场景中；若不再使用，可在人物卡删除该人物`,
+      });
+    }
+  }
+
+  addRelation(
+    fromCharacterId: string,
+    toCharacterId: string,
+    kind: string,
+    polarity: RelationPolarity,
+    note: string,
+  ): void {
+    const story = this.requireStory();
+    if (!fromCharacterId || !toCharacterId) {
+      this.setState({ notice: '请选择关系两端的人物' });
+      return;
+    }
+    if (fromCharacterId === toCharacterId) {
+      this.setState({ notice: '一条关系需要两个不同的人物' });
+      return;
+    }
+    const cleanKind = kind.trim();
+    if (cleanKind.length === 0) {
+      this.setState({ notice: '请填写关系类型，例如：盟友、对手' });
+      return;
+    }
+    const from = story.characters.find((character) => character.id === fromCharacterId);
+    const to = story.characters.find((character) => character.id === toCharacterId);
+    if (!from || !to) {
+      this.setState({ notice: '关系两端的人物已不存在，请重新选择' });
+      return;
+    }
+    const relation: StoryRelation = {
+      id: createId('relation'),
+      fromCharacterId,
+      toCharacterId,
+      kind: cleanKind,
+      polarity,
+      note: note.trim(),
+    };
+    this.updateStory((current) => ({ ...current, relations: [...current.relations, relation] }));
+    this.setState({
+      notice: `已记录：${from.name} → ${to.name} 的「${cleanKind}」关系`,
+    });
+  }
+
+  removeRelation(relationId: string): void {
+    const story = this.requireStory();
+    const relation = story.relations.find((item) => item.id === relationId);
+    this.updateStory((current) => ({
+      ...current,
+      relations: current.relations.filter((item) => item.id !== relationId),
+    }));
+    if (relation) {
+      this.setState({
+        notice: `已删除 ${characterName(story, relation.fromCharacterId)} → ${characterName(story, relation.toCharacterId)} 的「${relation.kind}」关系`,
+      });
+    }
   }
 
   moveScene(sceneId: string, direction: 'up' | 'down'): void {
@@ -178,6 +294,23 @@ export class StoryViewModel {
   get selectedScene(): StoryScene | null {
     const story = this.state.story;
     return story?.scenes.find((scene) => scene.id === story.selectedSceneId) ?? null;
+  }
+
+  relationsOf(characterId: string): StoryRelation[] {
+    const story = this.state.story;
+    return story ? relationsOfCharacter(story, characterId) : [];
+  }
+
+  relationsForSelectedScene(): StoryRelation[] {
+    const story = this.state.story;
+    const scene = this.selectedScene;
+    return story && scene ? relationsInScene(story, scene) : [];
+  }
+
+  /** 悬空关系数量：任何清理失败或外部脏数据都会在这里显形 */
+  get orphanRelationCount(): number {
+    const story = this.state.story;
+    return story ? orphanRelations(story).length : 0;
   }
 
   get timelineWarning(): string | null {

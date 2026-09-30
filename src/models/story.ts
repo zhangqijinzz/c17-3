@@ -24,6 +24,19 @@ export interface StoryClue {
   payoffSceneId: string;
 }
 
+/** 关系的情感倾向：ally 绑定 / rival 对立 / neutral 中性，决定人物视图里的配色 */
+export type RelationPolarity = 'ally' | 'rival' | 'neutral';
+
+/** 两个人物之间一条带方向的关系，同一对人物允许存在多条 */
+export interface StoryRelation {
+  id: string;
+  fromCharacterId: string;
+  toCharacterId: string;
+  kind: string;
+  polarity: RelationPolarity;
+  note: string;
+}
+
 export interface StoryDocument {
   version: 1;
   id: string;
@@ -32,6 +45,7 @@ export interface StoryDocument {
   characters: StoryCharacter[];
   scenes: StoryScene[];
   clues: StoryClue[];
+  relations: StoryRelation[];
   selectedSceneId: string;
   updatedAt: string;
 }
@@ -52,6 +66,7 @@ export function createId(prefix: string): string {
 
 export function createStarterStory(): StoryDocument {
   const miraId = 'character-mira';
+  const juneId = 'character-june';
   const oldHarborId = 'scene-old-harbor';
   const firstLetterId = 'clue-first-letter';
   return {
@@ -61,7 +76,7 @@ export function createStarterStory(): StoryDocument {
     status: 'draft',
     characters: [
       { id: miraId, name: '米拉', role: '灯塔守望人', color: 'coral' },
-      { id: 'character-june', name: '裘恩', role: '失踪船长的女儿', color: 'blue' },
+      { id: juneId, name: '裘恩', role: '失踪船长的女儿', color: 'blue' },
     ],
     scenes: [
       {
@@ -79,7 +94,7 @@ export function createStarterStory(): StoryDocument {
         order: 2,
         summary: '裘恩抵达灯塔，带来一枚从沉船上找到的铜制罗盘。',
         conflict: '两人对罗盘的来历各执一词。',
-        characterIds: [miraId, 'character-june'],
+        characterIds: [miraId, juneId],
         clueIds: [],
       },
     ],
@@ -89,6 +104,24 @@ export function createStarterStory(): StoryDocument {
         title: '潮汐表背后的日期',
         setupSceneId: oldHarborId,
         payoffSceneId: '',
+      },
+    ],
+    relations: [
+      {
+        id: 'relation-june-distrusts-mira',
+        fromCharacterId: juneId,
+        toCharacterId: miraId,
+        kind: '猜忌',
+        polarity: 'rival',
+        note: '裘恩怀疑米拉隐瞒了父亲失踪那晚的真相。',
+      },
+      {
+        id: 'relation-mira-guards-june',
+        fromCharacterId: miraId,
+        toCharacterId: juneId,
+        kind: '守护',
+        polarity: 'ally',
+        note: '米拉答应过老船长，要照看他唯一的女儿。',
       },
     ],
     selectedSceneId: oldHarborId,

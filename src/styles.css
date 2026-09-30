@@ -90,4 +90,49 @@ input, textarea, select { border: 1px solid var(--line); border-radius: 5px; bac
 .clue-panel { min-width: 0; }.unresolved { color: var(--coral); font: 10px 'DM Mono', monospace; padding-top: 8px; }.unresolved i { display: inline-block; width: 6px; height: 6px; background: var(--coral); border-radius: 50%; }.clue-list { display: grid; gap: 11px; min-height: 105px; }.clue-row { display: grid; grid-template-columns: 25px 1fr auto; gap: 8px; align-items: center; }.clue-symbol { color: #a88abd; font-size: 20px; }.clue-row div { display: grid; gap: 3px; min-width: 0; }.clue-row strong { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.clue-row span { color: var(--muted); font-size: 10px; }.clue-row b { color: #c4b8aa; padding: 0 3px; }.clue-row em { background: #fbefd9; color: #a36e27; white-space: nowrap; }.clue-row em.resolved { background: #e4efe5; color: #66826a; }.clue-form { flex-wrap: wrap; }.clue-form input { width: 100%; }.clue-form select { flex: 1; min-width: 0; }.clue-form button { padding: 9px 10px; }
 .inspector { position: sticky; top: 22px; }.inspector-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }.inspector h2 { max-width: 210px; line-height: 1.2; }.edit-state { color: #628066; font: 10px 'DM Mono', monospace; background: #e4efe5; padding: 5px 7px; border-radius: 3px; }.inspector label, .field-block { display: grid; gap: 7px; margin-top: 17px; }.inspector label, .field-label { color: var(--muted); font-size: 11px; }.inspector textarea { resize: vertical; line-height: 1.5; }.person-toggles { display: flex; flex-wrap: wrap; gap: 6px; }.person-toggle { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 14px; background: #fffefa; padding: 4px 8px 4px 4px; color: var(--muted); font-size: 10px; }.person-toggle span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #e9e3da; color: #fff; }.person-toggle.selected { color: #fff; border-color: transparent; }.person-toggle.selected span { background: #ffffff55; }.order-controls { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 16px; display: flex; align-items: center; gap: 6px; }.order-controls span { margin-right: auto; color: var(--muted); font-size: 11px; }.order-controls button { border: 1px solid var(--line); background: #fffefa; border-radius: 4px; padding: 6px 8px; color: var(--ink); font-size: 10px; }.order-controls button:disabled { opacity: .35; cursor: not-allowed; }.empty-inspector { min-height: 220px; }.empty-inspector p { color: var(--muted); font-size: 12px; line-height: 1.6; }
 .app-loading { min-height: 100vh; display: grid; place-content: center; justify-items: center; color: var(--muted); }.app-loading p { font-size: 12px; }
+/* 人物关系 */
+.character-card { align-items: flex-start; flex-wrap: wrap; }
+.character-body { display: grid; gap: 3px; min-width: 0; }
+.character-title-row { display: flex; align-items: center; gap: 6px; }
+.offstage-tag { font-style: normal; font-size: 9px; background: #fbefd9; color: #a36e27; border-radius: 3px; padding: 2px 5px; }
+.relationship-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.relationship-chip { font: 10px 'DM Mono', monospace; border-radius: 8px; padding: 2px 7px; white-space: nowrap; }
+.relationship-chip.ally, .relationship-type.ally, .scene-relationship-row.ally em { background: #e4efe5; color: #56735b; }
+.relationship-chip.rival, .relationship-type.rival, .scene-relationship-row.rival em { background: #fbe6df; color: #a34d3b; }
+.relationship-chip.family, .relationship-type.family, .scene-relationship-row.family em { background: #f2e8dc; color: #9c6c40; }
+.relationship-chip.mentor, .relationship-type.mentor, .scene-relationship-row.mentor em { background: #e7edf5; color: #5d759b; }
+.relationship-chip.love, .relationship-type.love, .scene-relationship-row.love em { background: #f5e7ee; color: #a05f80; }
+.relationship-chip.other, .relationship-type.other, .scene-relationship-row.other em { background: #ece8e1; color: #7d7568; }
+.mini-edit, .mini-remove, .mini-save { border: 0; background: none; color: #b3aaa0; font-size: 13px; padding: 2px 4px; border-radius: 4px; }
+.mini-edit:hover, .mini-remove:hover { color: var(--ink); background: #eee7db; }
+.mini-save { font-size: 10px; background: var(--ink); color: #fffaf1; align-self: center; padding: 5px 9px; }
+.character-card.editing .character-edit-fields { display: grid; gap: 5px; flex: 1; }
+.character-card.editing .character-edit-fields input { padding: 6px 8px; }
+.offstage-warning { background: #fbefd9; border: 1px solid #efd9ab; border-radius: 6px; padding: 9px 11px; margin-bottom: 13px; display: grid; gap: 7px; }
+.offstage-warning > strong { color: #8f6020; font-size: 11px; }
+.offstage-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: #8f6020; }
+.offstage-row button { border: 1px solid #e3c690; background: #fffdf7; color: #8f6020; border-radius: 4px; font-size: 10px; padding: 4px 9px; }
+.offstage-row button:hover { background: #f7ead1; }
+.relationship-editor { margin-top: 17px; border-top: 1px solid var(--line); padding-top: 15px; display: grid; gap: 12px; }
+.relationship-editor-heading { display: flex; align-items: baseline; justify-content: space-between; }
+.relationship-editor-heading > span:last-child { color: var(--muted); font: 10px 'DM Mono', monospace; }
+.relationship-list { display: grid; gap: 8px; }
+.relationship-row { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; background: #faf6ee; border-radius: 6px; padding: 8px 10px; }
+.relationship-type { font-style: normal; font-size: 10px; border-radius: 4px; padding: 3px 7px; white-space: nowrap; }
+.relationship-copy { display: grid; gap: 2px; min-width: 0; }
+.relationship-copy strong { font-size: 11px; font-weight: 600; }
+.relationship-copy strong b { color: #b7ac9d; font-weight: 400; padding: 0 2px; }
+.relationship-copy span { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.relationship-form { display: flex; gap: 6px; flex-wrap: wrap; }
+.relationship-form select, .relationship-form input { font-size: 11px; padding: 8px 9px; }
+.relationship-form select { flex: 1 1 72px; min-width: 0; }
+.relationship-form input { flex: 1 1 100%; }
+.relationship-form .icon-add { align-self: stretch; }
+/* 场景同场关系 */
+.scene-relationships { margin-top: 18px; }
+.scene-relationship-list { display: grid; gap: 8px; }
+.scene-relationship-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; background: #faf6ee; border-radius: 6px; padding: 8px 10px; }
+.scene-relationship-row em { font-style: normal; font-size: 10px; border-radius: 4px; padding: 3px 7px; margin-top: 1px; white-space: nowrap; }
+.scene-relationship-row span { display: grid; gap: 2px; font-size: 10px; color: var(--muted); line-height: 1.5; }
+.scene-relationship-row span b { color: var(--ink); font-weight: 600; font-size: 11px; }
 @media (max-width: 1220px) { .content-wrap { padding-left: 25px; padding-right: 25px; }.topbar { padding: 0 25px; }.work-grid { grid-template-columns: minmax(500px, 1fr) 285px; }.lower-grid { grid-template-columns: 1fr; } }
